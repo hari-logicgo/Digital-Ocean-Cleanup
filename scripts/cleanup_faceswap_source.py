@@ -1,17 +1,23 @@
 import os
 import boto3
 
-# Load env variables
+# -------------------------------
+# ENV VARIABLES
+# -------------------------------
 DO_SPACES_KEY = os.getenv("DO_SPACES_KEY")
 DO_SPACES_SECRET = os.getenv("DO_SPACES_SECRET")
 DO_SPACES_REGION = os.getenv("DO_SPACES_REGION")
 DO_SPACES_ENDPOINT = os.getenv("DO_SPACES_ENDPOINT")
 DO_SPACES_BUCKET = os.getenv("DO_SPACES_BUCKET")
 
-# Folders to clean (ADD MORE HERE IF NEEDED)
+# -------------------------------
+# SAFE PREFIXES TO CLEAN
+# -------------------------------
 PREFIXES_TO_CLEAN = [
     "faceswap/source/",
     "faceswap/result/",
+    "bikini-theme/source/",
+    "bikini-theme/result/",
 ]
 
 def main():
@@ -28,10 +34,13 @@ def main():
     total_deleted = 0
 
     for prefix in PREFIXES_TO_CLEAN:
-        print(f"\n🔍 Cleaning prefix: {prefix}")
+        print(f"\n🔍 Cleaning prefix → {prefix}")
 
         paginator = client.get_paginator("list_objects_v2")
-        pages = paginator.paginate(Bucket=DO_SPACES_BUCKET, Prefix=prefix)
+        pages = paginator.paginate(
+            Bucket=DO_SPACES_BUCKET,
+            Prefix=prefix
+        )
 
         objects_to_delete = []
 
@@ -39,15 +48,15 @@ def main():
             for obj in page.get("Contents", []):
                 key = obj["Key"]
 
-                # Safety check: only delete inside the prefix, not the folder itself
-                if key.startswith(prefix) and key != prefix:
+                # Hard safety guard
+                if key != prefix and key.startswith(prefix):
                     objects_to_delete.append({"Key": key})
 
         if not objects_to_delete:
-            print(f"✅ No files found in {prefix}")
+            print(f"✅ Nothing to delete in {prefix}")
             continue
 
-        # Batch delete (S3 limit = 1000)
+        # Delete in batches (S3 max = 1000)
         for i in range(0, len(objects_to_delete), 1000):
             batch = objects_to_delete[i:i + 1000]
             client.delete_objects(
@@ -57,9 +66,10 @@ def main():
 
         deleted_count = len(objects_to_delete)
         total_deleted += deleted_count
+
         print(f"🗑️ Deleted {deleted_count} files from {prefix}")
 
-    print(f"\n🎯 Cleanup completed. Total files deleted: {total_deleted}")
+    print(f"\n🎯 Cleanup finished. Total files deleted: {total_deleted}")
 
 if __name__ == "__main__":
     main()
