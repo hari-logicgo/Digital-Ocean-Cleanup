@@ -1,0 +1,33 @@
+name: Cleanup FaceSwap Source Images
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # Runs every 24 hours (UTC midnight)
+  workflow_dispatch:     # Allows manual run from GitHub UI
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install boto3
+
+      - name: Run cleanup script
+        env:
+          DO_SPACES_KEY: ${{ secrets.DO_SPACES_KEY }}
+          DO_SPACES_SECRET: ${{ secrets.DO_SPACES_SECRET }}
+          DO_SPACES_REGION: ${{ secrets.DO_SPACES_REGION }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+        run: |
+          python scripts/cleanup_faceswap_source.py
