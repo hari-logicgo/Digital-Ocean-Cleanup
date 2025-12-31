@@ -8,7 +8,11 @@ DO_SPACES_REGION = os.getenv("DO_SPACES_REGION")
 DO_SPACES_ENDPOINT = os.getenv("DO_SPACES_ENDPOINT")
 DO_SPACES_BUCKET = os.getenv("DO_SPACES_BUCKET")
 
-PREFIX = "faceswap/source/"
+# Folders to clean (ADD MORE HERE IF NEEDED)
+PREFIXES_TO_CLEAN = [
+    "faceswap/source/",
+    "faceswap/result/",
+]
 
 def main():
     session = boto3.session.Session()
@@ -21,32 +25,41 @@ def main():
         aws_secret_access_key=DO_SPACES_SECRET,
     )
 
-    paginator = client.get_paginator("list_objects_v2")
-    pages = paginator.paginate(Bucket=DO_SPACES_BUCKET, Prefix=PREFIX)
+    total_deleted = 0
 
-    objects_to_delete = []
+    for prefix in PREFIXES_TO_CLEAN:
+        print(f"\n🔍 Cleaning prefix: {prefix}")
 
-    for page in pages:
-        for obj in page.get("Contents", []):
-            key = obj["Key"]
+        paginator = client.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=DO_SPACES_BUCKET, Prefix=prefix)
 
-            # Safety check — delete only files inside source/
-            if key.startswith(PREFIX) and key != PREFIX:
-                objects_to_delete.append({"Key": key})
+        objects_to_delete = []
 
-    if not objects_to_delete:
-        print("✅ No files to delete.")
-        return
+        for page in pages:
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
 
-    # Batch delete (max 1000 per request)
-    for i in range(0, len(objects_to_delete), 1000):
-        batch = objects_to_delete[i:i + 1000]
-        client.delete_objects(
-            Bucket=DO_SPACES_BUCKET,
-            Delete={"Objects": batch}
-        )
+                # Safety check: only delete inside the prefix, not the folder itself
+                if key.startswith(prefix) and key != prefix:
+                    objects_to_delete.append({"Key": key})
 
-    print(f"🗑️ Deleted {len(objects_to_delete)} files from {PREFIX}")
+        if not objects_to_delete:
+            print(f"✅ No files found in {prefix}")
+            continue
+
+        # Batch delete (S3 limit = 1000)
+        for i in range(0, len(objects_to_delete), 1000):
+            batch = objects_to_delete[i:i + 1000]
+            client.delete_objects(
+                Bucket=DO_SPACES_BUCKET,
+                Delete={"Objects": batch}
+            )
+
+        deleted_count = len(objects_to_delete)
+        total_deleted += deleted_count
+        print(f"🗑️ Deleted {deleted_count} files from {prefix}")
+
+    print(f"\n🎯 Cleanup completed. Total files deleted: {total_deleted}")
 
 if __name__ == "__main__":
     main()
