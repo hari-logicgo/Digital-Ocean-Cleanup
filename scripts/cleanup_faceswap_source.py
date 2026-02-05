@@ -18,6 +18,8 @@ PREFIXES_TO_CLEAN = [
     "faceswap/result/",
     "bikini-theme/source/",
     "bikini-theme/result/",
+    "valentine/source/",
+    "valentine/results/",
 ]
 
 def main():
