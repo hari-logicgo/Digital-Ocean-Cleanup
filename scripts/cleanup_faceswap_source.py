@@ -20,6 +20,8 @@ PREFIXES_TO_CLEAN = [
     "bikini-theme/result/",
     "valentine/source/",
     "valentine/results/",
+    "Awaaz/images/",
+    "Awaaz/video/",
 ]
 
 def main():
