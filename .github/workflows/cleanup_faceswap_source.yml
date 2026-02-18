@@ -2,7 +2,7 @@ name: Cleanup FaceSwap Source Images
 
 on:
   schedule:
-    - cron: "0 0 */3 * *"  
+    - cron: "0 0 * * *"   # runs once every day (every 24 hrs) 
   workflow_dispatch:     # Allows manual run from GitHub UI
 
 jobs:
