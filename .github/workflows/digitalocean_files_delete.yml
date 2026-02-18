@@ -30,4 +30,4 @@ jobs:
           DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
           DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
         run: |
-          python scripts/cleanup_faceswap_source.py
+          python scripts/cronJob_Delete.py
