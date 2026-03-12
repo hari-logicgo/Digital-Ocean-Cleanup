@@ -16,7 +16,7 @@ DO_SPACES_BUCKET = os.getenv("DO_SPACES_BUCKET")
 PREFIXES_TO_CLEAN = [
     "faceswap/source/",
     "faceswap/result/",
-    "selfie-camera/ai-inputs"
+    "selfie-camera/ai-inputs",
     "valentine/source/",
     "valentine/results/",
     "Awaaz/images/",
