@@ -17,7 +17,6 @@ PREFIXES_TO_CLEAN = [
     "faceswap/source/",
     "faceswap/result/",
     "faceswap/target/",
-    "Pixcraft_AI/results/",
     "selfie-camera/ai-inputs/",
     "valentine/source/",
     "valentine/results/",
